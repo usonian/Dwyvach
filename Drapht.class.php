@@ -46,7 +46,7 @@ class Drapht {
   }
 
   /**
-   * Add multiple threads to the warp. If $pattern is empty, the harness
+   * Add multiple threads to the warp. If $pattern is empty, the shaft
    * threading pattern will need to be set later.
    * 
    * @param <type> $color
@@ -99,17 +99,17 @@ class Drapht {
     }
   }
 
-  public function tie($treadle, $harnesses = array()) {
-    $this->treadles[$treadle] = $harnesses;
+  public function tie($treadle, $shafts = array()) {
+    $this->treadles[$treadle] = $shafts;
   }
 
-  public function setWarpPattern($harnesses) {
-    //Set warp harnesses
+  public function setWarpPattern($shafts) {
+    //Set warp shafts
     $h = 0;
     for ($i = 0; $i < count($this->warp); $i++) {
-      $this->warp[$i]->setHarness($harnesses[$h]);
+      $this->warp[$i]->setshaft($shafts[$h]);
       $h++;
-      if ($h == count($harnesses)) {
+      if ($h == count($shafts)) {
         $h = 0;
       }
     }
@@ -159,8 +159,8 @@ class Drapht {
     $this->setWeftPattern($pattern['weft']);
 
     //Tie-ups
-    foreach ($pattern['tie'] as $treadle => $harnesses) {
-      $this->tie($treadle, $harnesses);
+    foreach ($pattern['tie'] as $treadle => $shafts) {
+      $this->tie($treadle, $shafts);
     }
   }
 
@@ -174,7 +174,7 @@ class Drapht {
     $warp = array();
     $weft = array();
     for ($i = 0; $i < count($this->warp); $i++) {
-      $warp[] = $this->warp[$i]->harness;
+      $warp[] = $this->warp[$i]->shaft;
     }
     for ($i = 0; $i < count($this->weft); $i++) {
       $weft[] = $this->weft[$i]->treadle;
@@ -212,12 +212,12 @@ class Drapht {
       //Draw solid weft line
       imageline($img, 0, $y, $width - 1, $y, $this->colors[$weft->color->hex]);
 
-      //Get the harnesses lifted for this weft
-      $harnesses = $this->treadles[$weft->treadle];
+      //Get the shafts lifted for this weft
+      $shafts = $this->treadles[$weft->treadle];
 
       for ($x = 0; $x < $width; $x++) {
         $warp = $this->warp[$x];
-        if (in_array($warp->harness, $harnesses)) {
+        if (in_array($warp->shaft, $shafts)) {
           //Draw pixel in warp color (allocate if necessary
           if (empty($this->colors[$warp->color->hex])) {
             $this->allocateColor($img, $warp->color);
@@ -261,18 +261,18 @@ class Drapht {
 class WarpThread {
   //(Reference to a ColorChip object)
   public $color;
-  //public $harness;
-  public $harness;
+  //public $shaft;
+  public $shaft;
 
-  function __construct(&$color, $harness = NULL) {
+  function __construct(&$color, $shaft = NULL) {
     $this->color = $color;
-    if ($harness) {
-      $this->setHarness($harness);
+    if ($shaft) {
+      $this->setShaft($shaft);
     }
   }
 
-  function setHarness($newHarness) {
-    $this->harness = $newHarness;
+  function setShaft($newShaft) {
+    $this->shaft = $newShaft;
   }
 }
 
