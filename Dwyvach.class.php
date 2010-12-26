@@ -49,9 +49,9 @@ class Dwyvach {
   /**
    * Add multiple threads to the warp. If $pattern is empty, the shaft
    * threading pattern will need to be set later.
-   * 
+   *
    * @param <type> $color
-   * @param <type> $width 
+   * @param <type> $width
    */
   public function addWarpStripe($color, $width, $pattern = null) {
     if ($pattern) {
@@ -295,7 +295,7 @@ class Dwyvach {
   }
 
   /**
-   * 
+   *
    * @param object $image GD image handler
    * @param int $r Red
    * @param int $g Green
