@@ -10,21 +10,73 @@ class Drapht {
   public $warp = array();
   public $weft = array();
   public $treadles = array();
+  public $outputDir = '.';
+  public $colors = array();
 
   function __construct($name) {
     $this->name = $name;
   }
 
   public function addWarpThread($thread) {
-    $this->warp[] = $thread;
+    $this->warp[count($this->warp)] = $thread;
   }
 
   public function addWeftThread($thread) {
-    $this->weft[] = $thread;
+    $this->weft[count($this->weft)] = $thread;
   }
 
   public function tie($treadle, $harnesses = array()) {
     $this->treadles[$treadle] = $harnesses;
+  }
+
+  /**
+   * Render this draft as a PNG graphic.
+   * @param string $filename
+   */
+  public function render($filename = null) {
+    if (empty($filename)) {
+      $filename = $this->name .'.png';
+    }
+    $width = count($this->warp);
+    $height = count($this->weft);
+
+    $img = imagecreate($width, $height);
+
+    for ($y = 0; $y < $height; $y++) {
+      $weft = $this->weft[$y];
+      //Allocate color if necessary
+      if (empty($this->colors[$weft->color->hex])) {
+        $this->allocateColor($img, $weft->color);
+      }
+      //Draw solid weft line
+      imageline($img, 0, $y, $width - 1, $y, $this->colors[$weft->color->hex]);
+
+      //Get the harnesses lifted for this weft
+      $harnesses = $this->treadles[$weft->treadle];
+
+      for ($x = 0; $x < $width; $x++) {
+        $warp = $this->warp[$x];
+        if (in_array($warp->harness, $harnesses)) {
+          //Draw pixel in warp color (allocate if necessary
+          if (empty($this->colors[$warp->color->hex])) {
+            $this->allocateColor($img, $warp->color);
+          }
+          imagesetpixel($img, $x, $y, $this->colors[$warp->color->hex]);
+        }
+      }
+    }
+    imagepng($img, $this->outputDir .'/'. $filename);
+  }
+
+  /**
+   * 
+   * @param object $image GD image handler
+   * @param int $r Red
+   * @param int $g Green
+   * @param int $b Blue
+   */
+  private function allocateColor(&$image, $colorChip) {
+    $this->colors[$colorChip->hex] = imagecolorallocate($image, $colorChip->r, $colorChip->g, $colorChip->b);
   }
 }
 
@@ -41,6 +93,10 @@ class WarpThread {
     $this->color = $color;
     $this->harness = $harness;
   }
+
+  function setHarness($newHarness) {
+    $this->harness = $newHarness;
+  }
 }
 
 /**
@@ -56,4 +112,9 @@ class WeftThread {
     $this->color = $color;
     $this->treadle = $treadle;
   }
+
+  function setTreadle($newTreadle) {
+    $this->treadle = $newTreadle;
+  }
 }
+
