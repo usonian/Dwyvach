@@ -369,19 +369,19 @@ class WarpThread {
 
 /**
  * PHP class representing a weft thread
- */
-class WeftThread {
-  //Reference to a ColorChip object
-  public $color;
-  //The treadle(s) to be used on this weft
-  public $treadle;
+     */
+    class WeftThread {
+      //Reference to a ColorChip object
+      public $color;
+      //The treadle(s) to be used on this weft
+      public $treadle;
 
-  function __construct(&$color, $treadle = NULL) {
-    $this->color = $color;
+      function __construct(&$color, $treadle = 0) {
+        $this->color = $color;
     if ($treadle) {
       $this->setTreadle($treadle);
     }
-  }
+    }
 
   function setTreadle($newTreadle) {
     $this->treadle = $newTreadle;
