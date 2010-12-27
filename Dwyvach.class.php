@@ -23,6 +23,8 @@
 define('DWYVACH_PATTERN_TABBY', 1);
 define('DWYVACH_PATTERN_TWILL', 2);
 define('DWYVACH_PATTERN_CUSTOM', 3);
+define('DWYVACH_WARP', 4);
+define('DWYVACH_WEFT', 5);
 
 /**
  * PHP class for building and rendering weaving drafts.
@@ -36,6 +38,7 @@ class Dwyvach {
   public $treadles = array();
   public $outputDir = '.';
   public $colors = array();
+  public $drawDown = array();
   public $gdImage = null;
 
   function __construct($name) {
@@ -143,7 +146,7 @@ class Dwyvach {
       case DWYVACH_PATTERN_TWILL:
         $pattern = array(
           'warp' => array(1,2,3,4),
-          'weft' => array(1,2,3,4),
+          'weft' => array(4,3,2,1),
           'tie' => array(
             1 => array(1,2),
             2 => array(2,3),
@@ -188,9 +191,42 @@ class Dwyvach {
   }
 
   /**
+   * Based on the currently configured draft, builds a two-dimensional array
+   * representing the draft drawdown
+   */
+  public function buildDrawDown() {
+    $dd = array();
+
+    $width = count($this->warp);
+    $height = count($this->weft);
+
+    for ($y = 0; $y < $height; $y++) {
+      $weft = $this->weft[$y];
+
+      //Get the shafts lifted for this weft
+      $shafts = $this->treadles[$weft->treadle];
+      for ($x = 0; $x < $width; $x++) {
+
+        $warp = $this->warp[$x];
+        $ddX = $width - $x - 1;
+        if (is_array($shafts) && in_array($warp->shaft, $shafts)) {
+          //Set cell as warp
+          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color->hex);
+        }
+        else {
+          //Set cell as weft
+          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color->hex);
+        }
+      }
+    }
+    $this->drawDown = $dd;
+  }
+
+  /**
    * Create a GD image resource from the currently defined warp, weft, and
    * treadle configuration.
    *
+   * @todo Used buildDrawDown() logic
    * @param int $scale
    */
   public function buildGd($scale = 100) {
@@ -255,6 +291,26 @@ class Dwyvach {
     }
     $this->buildGd($scale);
     imagepng($this->gdImage, $this->outputDir .'/'. $filename);
+  }
+
+  /**
+   * Returns a plain-text representation of the drawdown
+   * @param char $warp
+   * @param char $weft
+   * @return string
+   */
+  public function renderText($warp = '|', $weft = '-') {
+    $drawdown = '';
+    $this->buildDrawDown();
+    $width = count($this->warp);
+    $height = count($this->weft);
+    for ($y = 0; $y < $height; $y++) {
+      for ($x = 0; $x < $width; $x++) {
+        $drawdown .= $this->drawDown[$x][$y]['type'] == DWYVACH_WARP ? $warp : $weft;
+      }
+      $drawdown .= "\n";
+    }
+    return $drawdown;
   }
 
   /**
