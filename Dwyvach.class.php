@@ -192,7 +192,7 @@ class Dwyvach {
 
   /**
    * Based on the currently configured draft, builds a two-dimensional array
-   * representing the draft drawdown
+   * representing the draft drawdown.
    */
   public function buildDrawDown() {
     $dd = array();
@@ -211,11 +211,11 @@ class Dwyvach {
         $ddX = $width - $x - 1;
         if (is_array($shafts) && in_array($warp->shaft, $shafts)) {
           //Set cell as warp
-          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color->hex);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color);
         }
         else {
           //Set cell as weft
-          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color->hex);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color);
         }
       }
     }
@@ -226,38 +226,22 @@ class Dwyvach {
    * Create a GD image resource from the currently defined warp, weft, and
    * treadle configuration.
    *
-   * @todo Used buildDrawDown() logic
    * @param int $scale
    */
   public function buildGd($scale = 100) {
 
+    $this->buildDrawDown();
     $width = count($this->warp);
     $height = count($this->weft);
-
     $img = imagecreate($width, $height);
-
     for ($y = 0; $y < $height; $y++) {
-      $weft = $this->weft[$y];
-      //Allocate color if necessary
-      if (empty($this->colors[$weft->color->hex])) {
-        $this->allocateColor($img, $weft->color);
-      }
-      //Draw solid weft line
-      imageline($img, 0, $y, $width - 1, $y, $this->colors[$weft->color->hex]);
-
-      //Get the shafts lifted for this weft
-      $shafts = $this->treadles[$weft->treadle];
-
       for ($x = 0; $x < $width; $x++) {
-        $warp = $this->warp[$x];
-        if (in_array($warp->shaft, $shafts)) {
-          //Draw pixel in warp color (allocate if necessary
-          if (empty($this->colors[$warp->color->hex])) {
-            $this->allocateColor($img, $warp->color);
-          }
-          $pixelX = $width - $x - 1;
-          imagesetpixel($img, $pixelX, $y, $this->colors[$warp->color->hex]);
+        $pixel = $this->drawDown[$x][$y];
+        $colorHex = $pixel['color']->hex;
+        if (empty($this->colors[$colorHex])) {
+          $this->allocateColor($img, $pixel['color']);
         }
+        imagesetpixel($img, $x, $y, $this->colors[$colorHex]);
       }
     }
 
@@ -266,7 +250,6 @@ class Dwyvach {
     if ($scale != 100) {
       $width = round(count($this->warp) * $scale);
       $height = round(count($this->weft) * $scale);
-      print("$width x $height\n");
       $scaled_img = imagecreatetruecolor($width, $height);
       imagecopyresampled($scaled_img, $img, 0, 0, 0, 0, $width, $height, count($this->warp), count($this->weft));
       $this->gdImage = $scaled_img;
