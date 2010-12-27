@@ -219,7 +219,8 @@ class Dwyvach {
           if (empty($this->colors[$warp->color->hex])) {
             $this->allocateColor($img, $warp->color);
           }
-          imagesetpixel($img, $x, $y, $this->colors[$warp->color->hex]);
+          $pixelX = $width - $x - 1;
+          imagesetpixel($img, $pixelX, $y, $this->colors[$warp->color->hex]);
         }
       }
     }
