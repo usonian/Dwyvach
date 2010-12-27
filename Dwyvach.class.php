@@ -36,6 +36,7 @@ class Dwyvach {
   public $treadles = array();
   public $outputDir = '.';
   public $colors = array();
+  public $gdImage = null;
 
   function __construct($name) {
     $this->name = $name;
@@ -187,17 +188,13 @@ class Dwyvach {
   }
 
   /**
-   * Render this draft as a PNG graphic.
-   * @param string $filename
-   * @param $scale
-   *   Scale at which the image should be rendered, in percent. (For best results
-   *   use multiples of 100.)
+   * Create a GD image resource from the currently defined warp, weft, and
+   * treadle configuration.
    *
+   * @param int $scale
    */
-  public function render($filename = null, $scale = 100) {
-    if (empty($filename)) {
-      $filename = $this->name .'.png';
-    }
+  public function buildGd($scale = 100) {
+
     $width = count($this->warp);
     $height = count($this->weft);
 
@@ -234,13 +231,67 @@ class Dwyvach {
       $height = round(count($this->weft) * $scale);
       print("$width x $height\n");
       $scaled_img = imagecreatetruecolor($width, $height);
-      imagecopyresampled($scaled_img, $img, 0, 0, 0, 0, $width, $height, count($this->warp), count($this->weft));      
-      imagepng($scaled_img, $this->outputDir .'/'. $filename);
+      imagecopyresampled($scaled_img, $img, 0, 0, 0, 0, $width, $height, count($this->warp), count($this->weft));
+      $this->gdImage = $scaled_img;
     }
     else {
-      imagepng($img, $this->outputDir .'/'. $filename);
-
+      $this->gdImage = $img;
     }
+  }
+
+  /**
+   * Render this draft as a PNG graphic.
+   *
+   * @param string $filename
+   * @param $scale
+   *   Scale at which the image should be rendered, in percent. (For best results
+   *   use multiples of 100.)
+   *
+   */
+  public function render($filename = null, $scale = 100) {
+    if (empty($filename)) {
+      $filename = $this->name .'.png';
+    }
+    $this->buildGd($scale);
+    imagepng($this->gdImage, $this->outputDir .'/'. $filename);
+  }
+
+  /**
+   * Render this draft as a tiled PNG graphic.
+   *
+   * @param int $repeatX
+   * @param int $repeatY
+   * @param string $filename
+   * @param int $scale
+   */
+  public function renderTiled($repeatX = 3, $repeatY = 3, $filename = null, $scale = 100) {
+    if (empty($filename)) {
+      $filename = $this->name .'_tiled.png';
+    }
+    $this->buildGd($scale);
+
+    //Calculate tiled image width & height
+    $gdWidth = imagesx($this->gdImage);
+    $gdHeight = imagesy($this->gdImage);
+
+    $tiledWidth = $gdWidth * $repeatX;
+    $tiledHeight = $gdHeight * $repeatY;
+
+    $tiled = imagecreatetruecolor($tiledWidth, $tiledHeight);
+    for ($x = 0; $x < $repeatX; $x++) {
+      for ($y = 0; $y < $repeatY; $y++) {
+        $dst_x = $x * $gdWidth;
+        $dst_y = $y * $gdHeight;
+        $src_x = 0;
+        $src_y = 0;
+        $dst_w = $gdWidth;
+        $dst_h = $gdHeight;
+        $src_w = $gdWidth;
+        $src_h = $gdHeight;
+        imagecopyresampled($tiled, $this->gdImage, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+      }
+    }
+    imagepng($tiled, $this->outputDir .'/'. $filename);
   }
 
   /**
