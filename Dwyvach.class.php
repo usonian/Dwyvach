@@ -211,15 +211,24 @@ class Dwyvach {
         $ddX = $width - $x - 1;
         if (is_array($shafts) && in_array($warp->shaft, $shafts)) {
           //Set cell as warp
-          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color, 'x' => $x, 'y' => $y);
         }
         else {
           //Set cell as weft
-          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color, 'x' => $x, 'y' => $y);
         }
       }
     }
     $this->drawDown = $dd;
+  }
+
+  /**
+   * Returns a representation of the Drawdown in JSON format.
+   * @return string
+   */
+  public function renderJson() {
+    $this->buildDrawDown();
+    return json_encode($this->drawDown);
   }
 
   /**
