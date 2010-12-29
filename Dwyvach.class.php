@@ -226,25 +226,32 @@ class Dwyvach {
    * Returns a representation of the Drawdown in JSON format.
    * @return string
    */
-  public function renderJson() {
+  public function renderJson($imagePath = null) {
     $this->buildDrawDown();
     //Collapse into a single array where each element contains x,y,warp/weft,
     //and color info; easier to deal with than a set of nested objects
     $width = count($this->warp);
     $height = count($this->weft);
+    $drawdown = array();
     $json = array();
     for ($y = 0; $y < $height; $y++) {
       for ($x = 0; $x < $width; $x++) {
         $ddX = $width - $x - 1;
         $pixel = $this->drawDown[$x][$y];
         $colorHex = $pixel['color']->hex;
-        $json[] = array(
+        $json['drawdown'][] = array(
           'type' => $pixel['type'],
           'color' => '#'. $colorHex,
           'x' => $ddX,
           'y' => $y,
         );
       }
+    }
+
+    if ($imagePath != null) {
+      $data = base64_encode(file_get_contents($imagePath));
+      $img = "<strong>Preview:</strong><br/><br/><img src=\"data:image/png;base64,$data\"/>";
+      $json['image'] = $img;
     }
 
     return json_encode($json);
