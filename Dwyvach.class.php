@@ -228,7 +228,26 @@ class Dwyvach {
    */
   public function renderJson() {
     $this->buildDrawDown();
-    return json_encode($this->drawDown);
+    //Collapse into a single array where each element contains x,y,warp/weft,
+    //and color info; easier to deal with than a set of nested objects
+    $width = count($this->warp);
+    $height = count($this->weft);
+    $json = array();
+    for ($y = 0; $y < $height; $y++) {
+      for ($x = 0; $x < $width; $x++) {
+        $ddX = $width - $x - 1;
+        $pixel = $this->drawDown[$x][$y];
+        $colorHex = $pixel['color']->hex;
+        $json[] = array(
+          'type' => $pixel['type'],
+          'color' => '#'. $colorHex,
+          'x' => $ddX,
+          'y' => $y,
+        );
+      }
+    }
+
+    return json_encode($json);
   }
 
   /**
@@ -369,31 +388,45 @@ class WarpThread {
     if ($shaft) {
       $this->setShaft($shaft);
     }
+    else {
+      $this->setShaft(0);
+    }
   }
 
   function setShaft($newShaft) {
     $this->shaft = $newShaft;
+  }
+
+  function setColor($newColor) {
+    $this->color = $newColor;
   }
 }
 
 /**
  * PHP class representing a weft thread
      */
-    class WeftThread {
-      //Reference to a ColorChip object
-      public $color;
-      //The treadle(s) to be used on this weft
-      public $treadle;
+class WeftThread {
+  //Reference to a ColorChip object
+  public $color;
+  //The treadle(s) to be used on this weft
+  public $treadle;
 
-      function __construct(&$color, $treadle = 0) {
-        $this->color = $color;
+  function __construct(&$color, $treadle = 0) {
+    $this->color = $color;
     if ($treadle) {
       $this->setTreadle($treadle);
     }
+    else {
+      $this->setTreadle(0);
     }
+  }
 
   function setTreadle($newTreadle) {
     $this->treadle = $newTreadle;
+  }
+
+  function setColor($newColor) {
+    $this->color = $newColor;
   }
 }
 
