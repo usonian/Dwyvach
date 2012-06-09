@@ -411,7 +411,7 @@ class WarpThread {
 
 /**
  * PHP class representing a weft thread
- */
+     */
 class WeftThread {
   //Reference to a ColorChip object
   public $color;

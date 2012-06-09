@@ -11,6 +11,7 @@ Dwyvach is named for the weaver of the same name in Lloyd Alexander's *Taran Wan
 
 ##Requirements
 
+* PHP 5.2 or later.
 * The [ColorChip class](https://github.com/usonian/ColorChip/archives/1.1) to represent thread colors.
 * The PHP [GD](http://php.net/gd) extension if you plan to use the render() method.
 
