@@ -211,15 +211,50 @@ class Dwyvach {
         $ddX = $width - $x - 1;
         if (is_array($shafts) && in_array($warp->shaft, $shafts)) {
           //Set cell as warp
-          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WARP, 'color' => $warp->color, 'x' => $x, 'y' => $y);
         }
         else {
           //Set cell as weft
-          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color);
+          $dd[$ddX][$y] = array('type' => DWYVACH_WEFT, 'color' => $weft->color, 'x' => $x, 'y' => $y);
         }
       }
     }
     $this->drawDown = $dd;
+  }
+
+  /**
+   * Returns a representation of the Drawdown in JSON format.
+   * @return string
+   */
+  public function renderJson($imagePath = null) {
+    $this->buildDrawDown();
+    //Collapse into a single array where each element contains x,y,warp/weft,
+    //and color info; easier to deal with than a set of nested objects
+    $width = count($this->warp);
+    $height = count($this->weft);
+    $drawdown = array();
+    $json = array();
+    for ($y = 0; $y < $height; $y++) {
+      for ($x = 0; $x < $width; $x++) {
+        $ddX = $width - $x - 1;
+        $pixel = $this->drawDown[$x][$y];
+        $colorHex = $pixel['color']->hex;
+        $json['drawdown'][] = array(
+          'type' => $pixel['type'],
+          'color' => '#'. $colorHex,
+          'x' => $ddX,
+          'y' => $y,
+        );
+      }
+    }
+
+    if ($imagePath != null) {
+      $data = base64_encode(file_get_contents($imagePath));
+      $img = "<strong>Preview:</strong><br/><br/><img src=\"data:image/png;base64,$data\"/>";
+      $json['image'] = $img;
+    }
+
+    return json_encode($json);
   }
 
   /**
@@ -360,10 +395,17 @@ class WarpThread {
     if ($shaft) {
       $this->setShaft($shaft);
     }
+    else {
+      $this->setShaft(0);
+    }
   }
 
   function setShaft($newShaft) {
     $this->shaft = $newShaft;
+  }
+
+  function setColor($newColor) {
+    $this->color = $newColor;
   }
 }
 
@@ -376,15 +418,39 @@ class WeftThread {
   //The treadle(s) to be used on this weft
   public $treadle;
 
-  function __construct(&$color, $treadle = NULL) {
+  function __construct(&$color, $treadle = 0) {
     $this->color = $color;
     if ($treadle) {
       $this->setTreadle($treadle);
+    }
+    else {
+      $this->setTreadle(0);
     }
   }
 
   function setTreadle($newTreadle) {
     $this->treadle = $newTreadle;
   }
+
+  function setColor($newColor) {
+    $this->color = $newColor;
+  }
 }
 
+class DwyvachTartan extends Dwyvach {
+  
+  function addBlock($stripeDef, $pivot = TRUE) {
+    foreach ($stripeDef as $stripe) {
+      $this->addWarpStripe($stripe[0], $stripe[1]);
+      $this->addWeftStripe($stripe[0], $stripe[1]);
+    }
+    if ($pivot) {
+      array_pop($stripeDef);
+      $stripeDef = array_reverse($stripeDef);
+      foreach ($stripeDef as $stripe) {
+        $this->addWarpStripe($stripe[0], $stripe[1]);
+        $this->addWeftStripe($stripe[0], $stripe[1]);
+      }      
+    }
+  }
+}
