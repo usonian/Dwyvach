@@ -488,6 +488,8 @@ class DwyvachTartan extends Dwyvach {
   /**
    * Given the stripe pattern passed to the constructor, parse it and build 
    * the corresponding warp and weft stripes
+   * 
+   * @param Boolean $pivot 
    */
   private function parseNotation($pivot) {
 
@@ -532,9 +534,16 @@ class DwyvachTartan extends Dwyvach {
     }
   }
   
+  /**
+   * Adds stripes to the tartan
+   * @param array $stripes 
+   */
   private function addStripes($stripes) {
     foreach ($stripes as $stripe) {
       $colorHex = constant('DwyvachTartan::COLOR_'.$stripe[1]);
+      if ($colorHex == NULL) {
+        throw new Exception(sprintf("Unrecognized color '%s' in pattern %s", $stripe[1], $this->notation));
+      }
       $color = new ColorChip($colorHex, NULL, NULL, CC_HEX);
       $this->addWarpStripe($color, ($stripe[2] * $this->multiplier));
       $this->addWeftStripe($color, ($stripe[2] * $this->multiplier));
