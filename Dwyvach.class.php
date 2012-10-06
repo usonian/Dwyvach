@@ -439,18 +439,105 @@ class WeftThread {
 
 class DwyvachTartan extends Dwyvach {
   
-  function addBlock($stripeDef, $pivot = TRUE) {
-    foreach ($stripeDef as $stripe) {
-      $this->addWarpStripe($stripe[0], $stripe[1]);
-      $this->addWeftStripe($stripe[0], $stripe[1]);
-    }
+  public $notation;
+  public $multiplier;
+  
+  // Black
+  const COLOR_K  = '000000';
+  const COLOR_BL = '000000';
+  
+  // Blue
+  const COLOR_B  = '336699';
+  
+  // Red
+  const COLOR_R  = '990000';
+  
+  // White
+  const COLOR_W  = 'FFFFFF';
+  
+  // Yellow (Gold)
+  const COLOR_Y  = 'CCCC00';
+  const COLOR_GO = 'CCCC00';
+  
+  // Green
+  const COLOR_G  = '009900';
+  
+  // Grey
+  const COLOR_GR = '999999';
+  const COLOR_N  = '999999';
+  
+  // Purple
+  const COLOR_P  = '660099';
+  
+  // Azure
+  const COLOR_A  = '9999DD';
+  const COLOR_AA = '9999DD';
+  
+  function __construct($name, $notation, $pivot = TRUE, $multiplier = 1) {
+    parent::__construct($name);
+    
+    //Strip whitespace from pattern string
+    $pattern = preg_replace('/\s/', '', $pattern);
+    
+    $this->notation = $notation;
+    $this->multiplier = $multiplier;
+    $this->parseNotation($pivot);
+    $this->setPattern(DWYVACH_PATTERN_TWILL);    
+  }
+  
+  /**
+   * Given the stripe pattern passed to the constructor, parse it and build 
+   * the corresponding warp and weft stripes
+   */
+  private function parseNotation($pivot) {
+
+    //Split the pattern by alternating letter/number groups
+
+    // Regex will find groupings with one or two letters followed by one to 
+    // three numbers; this should be sufficient for all reasonable tartan
+    // definitions.
+    $regex = '/([A-Za-z]{1,2})([0-9]{1,3})/';
+
+    $matches = array();
+    
+    preg_match_all($regex, $this->notation, $matches, PREG_SET_ORDER);
+
+    // $matches now contains stripes in the following structure:
+    //  Array
+    //  (
+    //      [0] => Array
+    //          (
+    //              [0] => BL4
+    //              [1] => BL
+    //              [2] => 4
+    //          )
+    //
+    //      [1] => Array
+    //          (
+    //              [0] => R4
+    //              [1] => R
+    //              [2] => 4
+    //          )
+    //          
+    //      etc...
+    //  )
+    $this->addStripes($matches);
     if ($pivot) {
-      array_pop($stripeDef);
-      $stripeDef = array_reverse($stripeDef);
-      foreach ($stripeDef as $stripe) {
-        $this->addWarpStripe($stripe[0], $stripe[1]);
-        $this->addWeftStripe($stripe[0], $stripe[1]);
-      }      
+      // Tartan pivots on the first and last stripes; throw them away, reverse
+      // the rest of the pattern and add it:
+      array_shift($matches);
+      array_pop($matches);
+      $matches = array_reverse($matches);
+      $this->addStripes($matches);
     }
+  }
+  
+  private function addStripes($stripes) {
+    foreach ($stripes as $stripe) {
+      $colorHex = constant('DwyvachTartan::COLOR_'.$stripe[1]);
+      $color = new ColorChip($colorHex, NULL, NULL, CC_HEX);
+      $this->addWarpStripe($color, ($stripe[2] * $this->multiplier));
+      $this->addWeftStripe($color, ($stripe[2] * $this->multiplier));
+    }      
   }
 }
