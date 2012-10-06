@@ -477,7 +477,7 @@ class DwyvachTartan extends Dwyvach {
     parent::__construct($name);
     
     //Strip whitespace from pattern string
-    $pattern = preg_replace('/\s/', '', $pattern);
+    $pattern = preg_replace('/\s/', '', $notation);
     
     $this->notation = $notation;
     $this->multiplier = $multiplier;
