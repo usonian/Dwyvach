@@ -439,41 +439,87 @@ class WeftThread {
 
 class DwyvachTartan extends Dwyvach {
   
-  public $notation;
-  public $multiplier;
+  public  $notation;
+  public  $multiplier;
+  private $colorway;
+  private $pivot;
   
-  // Black
-  const COLOR_K  = '000000';
-  const COLOR_BL = '000000';
+  // Colorways
+  const COLORWAY_MODERN = 'MODERN';
+  const COLORWAY_ANCIENT = 'ANCIENT';
+  const COLORWAY_WEATHERED = 'WEATHERED';
   
-  // Blue
-  const COLOR_B  = '336699';
-  
-  // Red
-  const COLOR_R  = '990000';
-  
-  // White
-  const COLOR_W  = 'FFFFFF';
+    // Red
+  const COLOR_MODERN_R     = '861E1F';
+  const COLOR_ANCIENT_R    = 'E75037';
+  const COLOR_WEATHERED_R  = '7B2325';
+
+  // Orange
+  const COLOR_MODERN_O     = 'BE582B';
+  const COLOR_ANCIENT_O    = 'ED7C50';
+  const COLOR_WEATHERED_O  = 'AF7D69';
   
   // Yellow (Gold)
-  const COLOR_Y  = 'CCCC00';
-  const COLOR_GO = 'CCCC00';
-  
+  const COLOR_MODERN_Y     = 'CCBE30';
+  const COLOR_ANCIENT_Y    = 'BFC658';
+  const COLOR_WEATHERED_Y  = 'CCBE30';
+  const COLOR_MODERN_GO    = 'CCBE30';
+  const COLOR_ANCIENT_GO   = 'BFC658';
+  const COLOR_WEATHERED_GO = 'CCBE30';
+
   // Green
-  const COLOR_G  = '009900';
-  
-  // Grey
-  const COLOR_GR = '999999';
-  const COLOR_N  = '999999';
+  const COLOR_MODERN_G     = '1A2F20'; 
+  const COLOR_ANCIENT_G    = '518168';
+  const COLOR_WEATHERED_G  = '392D24';
+
+  // Blue
+  const COLOR_MODERN_B     = '192440'; 
+  const COLOR_ANCIENT_B    = '5986A5';  
+  const COLOR_WEATHERED_B  = '434641';
   
   // Purple
-  const COLOR_P  = '660099';
+  const COLOR_MODERN_P     = '3B205A';  
+  const COLOR_ANCIENT_P    = '3B205A';  
+  const COLOR_WEATHERED_P  = '30182A';  
+
+  // Black
+  const COLOR_MODERN_K     = '000000';
+  const COLOR_ANCIENT_K    = '000000';
+  const COLOR_WEATHERED_K  = '000000';
+  const COLOR_MODERN_BL    = '000000';  
+  const COLOR_ANCIENT_BL   = '000000';
+  const COLOR_WEATHERED_BL = '333333';
+ 
+  // White
+  const COLOR_MODERN_W     = 'FFFFFF';
+  const COLOR_ANCIENT_W    = 'FFFFFF';
+  const COLOR_WEATHERED_W  = 'CCCCCC  ';
+
+  // Grey
+  const COLOR_MODERN_GR    = '999999';
+  const COLOR_ANCIENT_GR   = '999999';
+  const COLOR_WEATHERED_GR = '999999';
+  const COLOR_MODERN_N     = '999999';
+  const COLOR_ANCIENT_N    = '999999';
+  const COLOR_WEATHERED_N  = '999999';
   
   // Azure
-  const COLOR_A  = '9999DD';
-  const COLOR_AA = '9999DD';
+  const COLOR_MODERN_A     = '9999DD';
+  const COLOR_ANCIENT_A    = 'AEAFD3';
+  const COLOR_WEATHERED_A  = 'A6A6B6';
+  const COLOR_MODERN_AA    = '9999DD';
+  const COLOR_ANCIENT_AA   = 'AEAFD3';
+  const COLOR_WEATHERED_AA = 'A6A6B6';
   
-  function __construct($name, $notation, $pivot = TRUE, $multiplier = 1) {
+  // Brown
+  const COLOR_MODERN_T     = '604000';
+  const COLOR_ANCIENT_T    = '604000';
+  const COLOR_WEATHERED_T  = '604000';
+  const COLOR_MODERN_BR    = '604000';
+  const COLOR_ANCIENT_BR   = '604000';
+  const COLOR_WEATHERED_BR = '604000';
+  
+  function __construct($name, $notation, $pivot = TRUE, $colorway = DwyvachTartan::COLORWAY_MODERN, $multiplier = 1) {
     parent::__construct($name);
     
     //Strip whitespace from pattern string
@@ -481,6 +527,8 @@ class DwyvachTartan extends Dwyvach {
     
     $this->notation = $notation;
     $this->multiplier = $multiplier;
+    $this->pivot = $pivot;
+    $this->colorway = $colorway;
     $this->parseNotation($pivot);
     $this->setPattern(DWYVACH_PATTERN_TWILL);    
   }
@@ -539,14 +587,19 @@ class DwyvachTartan extends Dwyvach {
    * @param array $stripes 
    */
   private function addStripes($stripes) {
+    static $colors;
     foreach ($stripes as $stripe) {
-      $colorHex = constant('DwyvachTartan::COLOR_'.$stripe[1]);
+      $colorName = 'DwyvachTartan::COLOR_' . $this->colorway . '_' . $stripe[1];
+      $colorHex = constant($colorName);
       if ($colorHex == NULL) {
         throw new Exception(sprintf("Unrecognized color '%s' in pattern %s", $stripe[1], $this->notation));
       }
-      $color = new ColorChip($colorHex, NULL, NULL, CC_HEX);
-      $this->addWarpStripe($color, ($stripe[2] * $this->multiplier));
-      $this->addWeftStripe($color, ($stripe[2] * $this->multiplier));
+      if (empty($colors[$colorHex])) {
+        $colors[$colorHex] = new ColorChip($colorHex, NULL, NULL, CC_HEX);
+      }
+      $this->addWarpStripe($colors[$colorHex], ($stripe[2] * $this->multiplier));
+      $this->addWeftStripe($colors[$colorHex], ($stripe[2] * $this->multiplier));
     }      
   }
 }
+
