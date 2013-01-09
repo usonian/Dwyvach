@@ -368,6 +368,42 @@ class Dwyvach {
     }
     imagepng($tiled, $this->outputDir .'/'. $filename);
   }
+  
+/**
+   * Returns an associative array where key = hex color and value = the total
+   * number of threads in that color.
+   */
+  public function getWarpThreadcountsByColor() {
+    $colors = array();
+    foreach ($this->warp as $warpThread) {
+      $key = $warpThread->color->getName() ? $warpThread->color->getName() : $warpThread->color->hex;
+      if (isset($colors[$key])) {
+        $colors[$key]++; 
+      }
+      else {
+        $colors[$key] = 1;
+      }
+    }
+    return $colors;
+  }
+  
+  /**
+   * Returns an associative array where key = hex color and value = the total
+   * number of threads in that color.
+   */
+  public function getWeftThreadcountsByColor() {
+    $colors = array();
+    foreach ($this->weft as $weftThread) {
+      $key = $warpThread->color->getName() ? $warpThread->color->getName() : $warpThread->color->hex;
+      if (isset($colors[$key])) {
+        $colors[$key]++; 
+      }
+      else {
+        $colors[$key] = 1;
+      }
+    }
+    return $colors;
+  }   
 
   /**
    *
@@ -434,15 +470,15 @@ class WeftThread {
 
   function setColor($newColor) {
     $this->color = $newColor;
-  }
+  } 
 }
 
 class DwyvachTartan extends Dwyvach {
   
   public  $notation;
   public  $multiplier;
-  private $colorway;
-  private $pivot;
+  public $colorway;
+  public $pivot;
   
   // Colorways
   const COLORWAY_MODERN = 'MODERN';
@@ -595,7 +631,7 @@ class DwyvachTartan extends Dwyvach {
         throw new Exception(sprintf("Unrecognized color '%s' in pattern %s", $stripe[1], $this->notation));
       }
       if (empty($colors[$colorHex])) {
-        $colors[$colorHex] = new ColorChip($colorHex, NULL, NULL, CC_HEX);
+        $colors[$colorHex] = new ColorChip($colorHex, NULL, NULL, CC_HEX, $stripe[1]);
       }
       $this->addWarpStripe($colors[$colorHex], ($stripe[2] * $this->multiplier));
       $this->addWeftStripe($colors[$colorHex], ($stripe[2] * $this->multiplier));
